@@ -1,0 +1,208 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|d:\\semester 4\\db\\db frontend\\chatty\\pages\\index.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:pages\\index.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CE102F5D-29A4-46F6-98EA-4D49B00467C4}|..\\ClassLibraryDal\\ClassLibraryDal.csproj|d:\\semester 4\\db\\db frontend\\classlibrarydal\\daluser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|d:\\semester 4\\db\\db frontend\\chatty\\chatty.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:chatty.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\models\\usermessage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:models\\usermessage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CE102F5D-29A4-46F6-98EA-4D49B00467C4}|..\\ClassLibraryDal\\ClassLibraryDal.csproj|d:\\semester 4\\db\\db frontend\\classlibrarydal\\dbhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2EBAB60-66E6-406E-9B51-2D66068C225A}|..\\ClassLibraryModel\\ClassLibraryModel.csproj|d:\\semester 4\\db\\db frontend\\classlibrarymodel\\modeluser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\pages\\counter.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:pages\\counter.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\hubs\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59664976-7C1C-402F-B9A9-71B3837AA233}|Chatty.csproj|solutionrelative:hubs\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Chatty",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Chatty.csproj",
+              "RelativeDocumentMoniker": "Chatty.csproj",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Chatty.csproj",
+              "RelativeToolTip": "Chatty.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAAAKAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-05-28T20:27:43.707Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "DBHelper.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryDal\\DBHelper.cs",
+              "RelativeDocumentMoniker": "..\\ClassLibraryDal\\DBHelper.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryDal\\DBHelper.cs",
+              "RelativeToolTip": "..\\ClassLibraryDal\\DBHelper.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T20:11:06.793Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DalUser.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryDal\\DalUser.cs",
+              "RelativeDocumentMoniker": "..\\ClassLibraryDal\\DalUser.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryDal\\DalUser.cs",
+              "RelativeToolTip": "..\\ClassLibraryDal\\DalUser.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABQAAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:48:48.932Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ModelUser.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryModel\\ModelUser.cs",
+              "RelativeDocumentMoniker": "..\\ClassLibraryModel\\ModelUser.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\ClassLibraryModel\\ModelUser.cs",
+              "RelativeToolTip": "..\\ClassLibraryModel\\ModelUser.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAUAAAAsAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:42:33.871Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "site.css",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\wwwroot\\css\\site.css",
+              "RelativeDocumentMoniker": "wwwroot\\css\\site.css",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\wwwroot\\css\\site.css",
+              "RelativeToolTip": "wwwroot\\css\\site.css",
+              "ViewState": "AQIAABUAAAAAAAAAAAAwwDcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2024-05-28T19:00:37.103Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AQIAAAUAAAAAAAAAAAAuwBoAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:00:37.108Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.razor",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Pages\\Index.razor",
+              "RelativeDocumentMoniker": "Pages\\Index.razor",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Pages\\Index.razor",
+              "RelativeToolTip": "Pages\\Index.razor",
+              "ViewState": "AQIAAAEAAAAAAAAAAAAAAAUAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-05-28T19:00:37.112Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UserMessage.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Models\\UserMessage.cs",
+              "RelativeDocumentMoniker": "Models\\UserMessage.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Models\\UserMessage.cs",
+              "RelativeToolTip": "Models\\UserMessage.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA8AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:00:37.116Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Startup.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Startup.cs",
+              "RelativeDocumentMoniker": "Startup.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Startup.cs",
+              "RelativeToolTip": "Startup.cs",
+              "ViewState": "AQIAACUAAAAAAAAAAAAAAEQAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:00:37.121Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Counter.razor",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Pages\\Counter.razor",
+              "RelativeDocumentMoniker": "Pages\\Counter.razor",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Pages\\Counter.razor",
+              "RelativeToolTip": "Pages\\Counter.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAOAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-05-28T19:00:35.875Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ChatHub.cs",
+              "DocumentMoniker": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Hubs\\ChatHub.cs",
+              "RelativeDocumentMoniker": "Hubs\\ChatHub.cs",
+              "ToolTip": "D:\\semester 4\\DB\\DB FRONTEND\\Chatty\\Hubs\\ChatHub.cs",
+              "RelativeToolTip": "Hubs\\ChatHub.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-28T19:00:37.125Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
