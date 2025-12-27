@@ -1,8 +1,6 @@
-﻿@page "/"
+@page "/signup"
 @inject NavigationManager NavigationManager
 @inject Chatty.Services.DalUser DalUser
-@using System.Threading.Tasks
-
 
 <div class="login-container">
     <div class="container">
@@ -10,75 +8,73 @@
             <div class="col-md-5 col-lg-4">
                 <div class="login-card">
                     <div class="login-header">
-                        <h3>Welcome Back</h3>
+                        <h3>Create Account</h3>
                     </div>
                     <div class="card-body p-4">
                         <div class="form-group">
                             <label class="form-label" for="username">Username</label>
                             <input @bind="username" 
-                                   @bind:event="oninput"
-                                   @onkeypress="HandleKeyPress"
                                    id="username" 
                                    type="text" 
                                    class="form-control" 
-                                   placeholder="Enter your username"
+                                   placeholder="Choose a username"
                                    disabled="@isLoading" />
                             <span class="input-icon">👤</span>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="password">Password</label>
                             <input @bind="password" 
-                                   @bind:event="oninput"
-                                   @onkeypress="HandleKeyPress"
                                    id="password" 
                                    type="password" 
                                    class="form-control" 
-                                   placeholder="Enter your password"
+                                   placeholder="Choose a password"
                                    disabled="@isLoading" />
                             <span class="input-icon">🔒</span>
                         </div>
-                        <button @onclick="Login" 
+                         <div class="form-group">
+                            <label class="form-label" for="confirmPassword">Confirm Password</label>
+                            <input @bind="confirmPassword" 
+                                   id="confirmPassword" 
+                                   type="password" 
+                                   class="form-control" 
+                                   placeholder="Confirm your password"
+                                   disabled="@isLoading" />
+                            <span class="input-icon">🔒</span>
+                        </div>
+
+                        <button @onclick="Register" 
                                 class="btn btn-login btn-primary w-100 text-white" 
                                 disabled="@isLoading">
                             @if (isLoading)
                             {
                                 <span class="spinner"></span>
-                                <span>Authenticating...</span>
+                                <span>Creating Account...</span>
                             }
                             else
                             {
-                                <span>Login</span>
+                                <span>Sign Up</span>
                             }
                         </button>
-                        
+
                         <div class="text-center mt-3">
-                            <span class="text-muted">Don't have an account? </span>
-                            <a href="signup" class="text-primary font-weight-bold" style="text-decoration: none;">Sign Up</a>
+                            <span class="text-muted">Already have an account? </span>
+                            <a href="" class="text-primary font-weight-bold" style="text-decoration: none;">Login</a>
                         </div>
                         
                         @if (showError)
                         {
                             <div class="alert alert-danger mt-3" role="alert">
-                                <strong>⚠️ Authentication failed!</strong><br />
-                                Please check your credentials and try again.
+                                <strong>⚠️ Registration failed!</strong><br />
+                                @errorMessage
                             </div>
                         }
                         
                         @if (showSuccess)
                         {
                             <div class="alert alert-success mt-3" role="alert">
-                                <strong>✓ Success!</strong> Redirecting to chat...
+                                <strong>✓ Success!</strong> Account created. Redirecting...
                             </div>
                         }
-
-                        <div class="demo-info">
-                            <h6>Demo Credentials</h6>
-                            <small>
-                                <strong>User 1:</strong> admin / admin123<br />
-                                <strong>User 2:</strong> john / john123<br />
-                                <strong>User 3:</strong> alice / alice123
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -87,59 +83,43 @@
 </div>
 
 @code {
-    private string username = "";
-    private string password = "";
+    private string username;
+    private string password;
+    private string confirmPassword;
     private bool showError = false;
+    private string errorMessage = "";
     private bool showSuccess = false;
     private bool isLoading = false;
 
-    // Dummy hardcoded users
-    private readonly Dictionary<string, string> dummyUsers = new()
+    private async Task Register()
     {
-        { "admin", "admin123" },
-        { "john", "john123" },
-        { "alice", "alice123" }
-    };
-
-    private async Task Login()
-    {
-        // Reset states
         showError = false;
         showSuccess = false;
         isLoading = true;
 
-        // Simulate network delay for realistic UX
-        await Task.Delay(1000);
+        await Task.Delay(1000); // Simulate network
 
-        bool isAuthenticated = AuthenticateUser(username, password);
-
-        if (isAuthenticated)
-        {
-            showSuccess = true;
-            await Task.Delay(800); // Show success message briefly
-            NavigationManager.NavigateTo("/chat");
-        }
-        else
-        {
+        if (password != confirmPassword) {
             showError = true;
+            errorMessage = "Passwords do not match.";
             isLoading = false;
+            return;
         }
-    }
+        NavigationManager.NavigateTo("/");
 
-    private bool AuthenticateUser(string user, string pass)
-    {
-        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
-            return false;
+        //bool isRegistered = await DalUser.RegisterUser(username, password);
 
-        return dummyUsers.TryGetValue(user.ToLower(), out var storedPassword) 
-               && storedPassword == pass;
-    }
-
-    private async Task HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !isLoading)
-        {
-            await Login();
-        }
+        //if (isRegistered)
+        //{
+        //    showSuccess = true;
+        //    await Task.Delay(1000);
+        //    NavigationManager.NavigateTo("/");
+        //}
+        //else
+        //{
+        //    showError = true;
+        //    errorMessage = "Username already exists or is invalid.";
+        //    isLoading = false;
+        //}
     }
 }
