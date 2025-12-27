@@ -1,4 +1,4 @@
-﻿using Chatty.Data;
+using Chatty.Data;
 using Chatty.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
@@ -30,7 +30,7 @@ namespace Chatty
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-
+            services.AddSingleton<WeatherForecastService>();
             services.AddSingleton<DalUser>();
             services.AddResponseCompression(opts => {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });

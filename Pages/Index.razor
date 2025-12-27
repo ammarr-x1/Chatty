@@ -3,27 +3,292 @@
 @inject Chatty.Services.DalUser DalUser
 @using System.Threading.Tasks
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Login</h3>
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input @bind="username" id="username" type="text" class="form-control" placeholder="Enter your username" />
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        animation: gradientShift 15s ease infinite;
+        background-size: 200% 200%;
+    }
+
+    @@keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        animation: slideUp 0.6s ease-out;
+        backdrop-filter: blur(10px);
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @@keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .login-header h3 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-login:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-login:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .btn-login::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-login:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .alert {
+        border-radius: 10px;
+        animation: shake 0.5s ease;
+        border: none;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f84f4fff 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .demo-info {
+        background: rgba(102, 126, 234, 0.1);
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+        animation: fadeIn 0.8s ease 0.5s both;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .demo-info h6 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .demo-info small {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 15px;
+        top: 38px;
+        color: #999;
+        transition: color 0.3s ease;
+    }
+
+    .form-control:focus ~ .input-icon {
+        color: #667eea;
+    }
+</style>
+
+<div class="login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h3>Welcome Back</h3>
                     </div>
-                    <div class="form-group mt-3">
-                        <label for="password">Password</label>
-                        <input @bind="password" id="password" type="password" class="form-control" placeholder="Enter your password" />
-                    </div>
-                    <button @onclick="Login" class="btn btn-primary btn-block mt-4">Login</button>
-                    @if (showError)
-                    {
-                        <div class="alert alert-danger mt-3" role="alert">
-                            Authentication failed. Please try again.
+                    <div class="card-body p-4">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <input @bind="username" 
+                                   @bind:event="oninput"
+                                   @onkeypress="HandleKeyPress"
+                                   id="username" 
+                                   type="text" 
+                                   class="form-control" 
+                                   placeholder="Enter your username"
+                                   disabled="@isLoading" />
+                            <span class="input-icon">👤</span>
                         </div>
-                    }
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <input @bind="password" 
+                                   @bind:event="oninput"
+                                   @onkeypress="HandleKeyPress"
+                                   id="password" 
+                                   type="password" 
+                                   class="form-control" 
+                                   placeholder="Enter your password"
+                                   disabled="@isLoading" />
+                            <span class="input-icon">🔒</span>
+                        </div>
+                        <button @onclick="Login" 
+                                class="btn btn-login btn-primary w-100 text-white" 
+                                disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner"></span>
+                                <span>Authenticating...</span>
+                            }
+                            else
+                            {
+                                <span>Login</span>
+                            }
+                        </button>
+                        
+                        @if (showError)
+                        {
+                            <div class="alert alert-danger mt-3" role="alert">
+                                <strong>⚠️ Authentication failed!</strong><br />
+                                Please check your credentials and try again.
+                            </div>
+                        }
+                        
+                        @if (showSuccess)
+                        {
+                            <div class="alert alert-success mt-3" role="alert">
+                                <strong>✓ Success!</strong> Redirecting to chat...
+                            </div>
+                        }
+
+                        <div class="demo-info">
+                            <h6>Demo Credentials</h6>
+                            <small>
+                                <strong>User 1:</strong> admin / admin123<br />
+                                <strong>User 2:</strong> john / john123<br />
+                                <strong>User 3:</strong> alice / alice123
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -31,23 +296,59 @@
 </div>
 
 @code {
-    private string username;
-    private string password;
+    private string username = "";
+    private string password = "";
     private bool showError = false;
+    private bool showSuccess = false;
+    private bool isLoading = false;
+
+    // Dummy hardcoded users
+    private readonly Dictionary<string, string> dummyUsers = new()
+    {
+        { "admin", "admin123" },
+        { "john", "john123" },
+        { "alice", "alice123" }
+    };
 
     private async Task Login()
     {
-        bool isAuthenticated = await DalUser.AuthenticateUser(username, password);
+        // Reset states
+        showError = false;
+        showSuccess = false;
+        isLoading = true;
+
+        // Simulate network delay for realistic UX
+        await Task.Delay(1000);
+
+        bool isAuthenticated = AuthenticateUser(username, password);
 
         if (isAuthenticated)
         {
-            
+            showSuccess = true;
+            await Task.Delay(800); // Show success message briefly
             NavigationManager.NavigateTo("/chat");
         }
         else
         {
-            
             showError = true;
+            isLoading = false;
+        }
+    }
+
+    private bool AuthenticateUser(string user, string pass)
+    {
+        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
+            return false;
+
+        return dummyUsers.TryGetValue(user.ToLower(), out var storedPassword) 
+               && storedPassword == pass;
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !isLoading)
+        {
+            await Login();
         }
     }
 }
