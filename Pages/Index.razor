@@ -1,89 +1,327 @@
-﻿@page "/"
+﻿@page "/login"
 @inject NavigationManager NavigationManager
-@inject Chatty.Services.DalUser DalUser
+@inject Chatty.Services.AuthService AuthService
 @inject Chatty.Services.UserSession UserSession
 @using System.Threading.Tasks
 
 
-<div class="login-container">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
-                <div class="login-card">
-                    <div class="login-header">
-                        <h3>Welcome Back</h3>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="form-group">
-                            <label class="form-label" for="username">Username</label>
-                            <input @bind="username" 
-                                   @bind:event="oninput"
-                                   @onkeypress="HandleKeyPress"
-                                   id="username" 
-                                   type="text" 
-                                   class="form-control" 
-                                   placeholder="Enter your username"
-                                   disabled="@isLoading" />
-                            <span class="input-icon">👤</span>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="password">Password</label>
-                            <input @bind="password" 
-                                   @bind:event="oninput"
-                                   @onkeypress="HandleKeyPress"
-                                   id="password" 
-                                   type="password" 
-                                   class="form-control" 
-                                   placeholder="Enter your password"
-                                   disabled="@isLoading" />
-                            <span class="input-icon">🔒</span>
-                        </div>
-                        <button @onclick="Login" 
-                                class="btn btn-login btn-primary w-100 text-white" 
-                                disabled="@isLoading">
-                            @if (isLoading)
-                            {
-                                <span class="spinner"></span>
-                                <span>Authenticating...</span>
-                            }
-                            else
-                            {
-                                <span>Login</span>
-                            }
-                        </button>
-                        
-                        <div class="text-center mt-3">
-                            <span class="text-muted">Don't have an account? </span>
-                            <a href="signup" class="text-primary font-weight-bold" style="text-decoration: none;">Sign Up</a>
-                        </div>
-                        
-                        @if (showError)
-                        {
-                            <div class="alert alert-danger mt-3" role="alert">
-                                <strong>⚠️ Authentication failed!</strong><br />
-                                Please check your credentials and try again.
-                            </div>
-                        }
-                        
-                        @if (showSuccess)
-                        {
-                            <div class="alert alert-success mt-3" role="alert">
-                                <strong>✓ Success!</strong> Redirecting to chat...
-                            </div>
-                        }
+<style>
+    .login-root {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
 
-                        <div class="demo-info">
-                            <h6>Demo Credentials</h6>
-                            <small>
-                                <strong>User 1:</strong> admin / admin123<br />
-                                <strong>User 2:</strong> john / john123<br />
-                                <strong>User 3:</strong> alice / alice123
-                            </small>
-                        </div>
-                    </div>
-                </div>
+    /* Animated Background Shapes */
+    .shape {
+        position: absolute;
+        filter: blur(50px);
+        z-index: 0;
+        animation: float 20s infinite;
+    }
+    .shape-1 {
+        top: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: rgba(102, 126, 234, 0.5);
+        border-radius: 50%;
+        animation-delay: 0s;
+    }
+    .shape-2 {
+        bottom: -20%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: rgba(118, 75, 162, 0.4);
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation-delay: -5s;
+    }
+    .shape-3 {
+        top: 40%;
+        left: 40%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation-delay: -10s;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -50px) rotate(10deg); }
+        66% { transform: translate(-20px, 20px) rotate(-5deg); }
+    }
+
+    .login-card-glass {
+        background: rgba(255, 255, 255, 0.85); /* Slightly more opaque for better contrast */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        padding: 3rem;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        z-index: 10;
+        animation: cardEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @@keyframes cardEnter {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .brand-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .brand-logo {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .brand-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .form-floating-custom {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #e1e5ee;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #495057;
+    }
+
+    .form-control-custom:focus {
+        border-color: #764ba2;
+        box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+        background: #fff;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        transition: color 0.3s ease;
+        font-size: 1.1rem;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .form-control-custom {
+        position: relative;
+        z-index: 1;
+
+    .form-control-custom:focus + .input-icon {
+        color: #764ba2;
+    }
+
+    .form-control-custom:not(:placeholder-shown) ~ .floating-label,
+    .form-control-custom:focus ~ .floating-label {
+        opacity: 0; /* Hide floating label behavior for this design, using clean inputs */
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);
+    }
+
+    .btn-submit:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .spinner {
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 2px solid #fff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .footer-text {
+        text-align: center;
+        margin-top: 2rem;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .link-custom {
+        color: #764ba2;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .link-custom:hover {
+        color: #667eea;
+        text-decoration: underline;
+    }
+
+    .alert-custom {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: shake 0.4s ease-in-out;
+    }
+
+    .alert-danger-custom {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        color: #c53030;
+    }
+
+    .alert-success-custom {
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #2f855a;
+        animation: slideIn 0.3s ease;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    @@keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="login-root">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+
+    <div class="login-card-glass">
+        <div class="brand-header">
+            <h1 class="brand-logo">Chatty</h1>
+            <p class="brand-subtitle">Welcome back! Please login to continue.</p>
+        </div>
+
+        @if (showError)
+        {
+            <div class="alert-custom alert-danger-custom">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Authentication failed! Check your credentials.</span>
+            </div>
+        }
+
+        @if (showSuccess)
+        {
+            <div class="alert-custom alert-success-custom">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Success! Redirecting...</span>
+            </div>
+        }
+
+        <div class="form-group">
+            <div class="form-floating-custom">
+                <input @bind="username" 
+                       @bind:event="oninput"
+                       @onkeypress="HandleKeyPress"
+                       type="text" 
+                       class="form-control-custom" 
+                       placeholder="Username"
+                       disabled="@isLoading" />
+                <span class="input-icon">@((MarkupString)"<svg width='20' height='20' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'></path></svg>")</span>
+                <!-- <label class="floating-label">Username</label> -->
+            </div>
+
+            <div class="form-floating-custom">
+                <input @bind="password" 
+                       @bind:event="oninput"
+                       @onkeypress="HandleKeyPress"
+                       type="password" 
+                       class="form-control-custom" 
+                       placeholder="Password"
+                       disabled="@isLoading" />
+                <span class="input-icon">@((MarkupString)"<svg width='20' height='20' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'></path></svg>")</span>
             </div>
         </div>
+
+        <button class="btn-submit" @onclick="Login" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner"></span>
+                <span>Signing In...</span>
+            }
+            else
+            {
+                <span>Login</span>
+            }
+        </button>
+
+        <div class="footer-text">
+            Don't have an account? 
+            <a href="signup" class="link-custom">Sign Up</a>
+        </div>
+        
+
     </div>
 </div>
 
@@ -94,33 +332,8 @@
     private bool showSuccess = false;
     private bool isLoading = false;
 
-    // Dummy hardcoded users
-    private readonly Dictionary<string, string> dummyUsers = new()
-    {
-        { "admin", "admin123" },
-        { "john", "john123" },
-        { "alice", "alice123" }
-    };
+    // Legacy auth methods removed
 
-    private bool AuthenticateUser(string user, string pass)
-    {
-        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
-            return false;
-
-        // Use mock data
-        if (dummyUsers.TryGetValue(user.ToLower(), out var storedPassword) && storedPassword == pass)
-        {
-             return true;
-        }
-        
-        // Also allow new users registered in Service
-        if (DalUser.AuthenticateUser(user, pass).Result) 
-        {
-            return true;
-        }
-
-        return false;
-    }
 
     private async Task Login()
     {
@@ -129,16 +342,16 @@
         showSuccess = false;
         isLoading = true;
 
-        await Task.Delay(1000); 
+        await Task.Delay(500); // Small UI feel delay
 
-        bool isAuthenticated = AuthenticateUser(username, password);
+        var user = await AuthService.LoginAsync(username, password);
 
-        if (isAuthenticated)
+        if (user != null)
         {
-            UserSession.Username = username; // Set Session
+            UserSession.Username = user.Username; // Set Session
             showSuccess = true;
             await Task.Delay(800);
-            NavigationManager.NavigateTo("/home"); // Redirect to Home
+            NavigationManager.NavigateTo("/home");
         }
         else
         {

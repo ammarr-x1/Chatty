@@ -24,10 +24,13 @@ namespace Chatty
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
-            services.AddSingleton<DalUser>();
             services.AddSingleton<ChatService>();
             services.AddScoped<UserSession>();
+            
+            // Auth Architecture
+            services.AddSingleton<MongoDbContext>();
+            services.AddSingleton<Chatty.Data.IUserRepository, Chatty.Data.UserRepository>();
+            services.AddSingleton<Chatty.Services.AuthService>();
             
             services.AddResponseCompression(opts => {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });

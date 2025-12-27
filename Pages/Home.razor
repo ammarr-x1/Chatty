@@ -1,4 +1,5 @@
 @page "/home"
+@implements IDisposable
 @inject NavigationManager NavigationManager
 @inject Chatty.Services.ChatService ChatService
 @inject Chatty.Services.UserSession UserSession
@@ -340,7 +341,8 @@ else
                         <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
                             @foreach (var room in myRooms)
                             {
-                                <a href="chat/@room" class="chat-list-item">
+                                <div class="d-flex align-items-center border-bottom">
+                                <a href="chat/@room" class="chat-list-item flex-grow-1 border-0">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             @if(room.StartsWith("DM-")) {
@@ -354,6 +356,10 @@ else
                                         <span class="badge-custom">Active</span>
                                     </div>
                                 </a>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteChat(room)" title="Delete Chat" style="z-index: 2;">
+                                    🗑️
+                                </button>
+                            </div>
                             }
                             @if (myRooms.Count == 0)
                             {
@@ -451,6 +457,38 @@ else
         {
             myRooms = ChatService.GetUserChats(UserSession.Username);
         }
+        ChatService.OnMessageAdded += HandleMessageAdded;
+    }
+
+    private void HandleMessageAdded(string roomCode, Chatty.Services.ChatMessage msg)
+    {
+        // When any message comes in, check if it involves us.
+        // Actually, we just want to refresh the LIST of chats.
+        // If someone sends a DM to us, we want it to pop up.
+        // We can just blindly refresh the list if we are logged in.
+        
+        // Optimization: Only if we are part of the room?
+        // But `GetUserChats` already filters that.
+        // So we just re-fetch.
+        InvokeAsync(() => 
+        {
+             if (!string.IsNullOrEmpty(UserSession.Username))
+             {
+                myRooms = ChatService.GetUserChats(UserSession.Username);
+                StateHasChanged();
+             }
+        });
+    }
+
+    public void Dispose()
+    {
+        ChatService.OnMessageAdded -= HandleMessageAdded;
+    }
+
+    private void DeleteChat(string roomCode)
+    {
+        ChatService.DeleteChat(UserSession.Username!, roomCode);
+        myRooms = ChatService.GetUserChats(UserSession.Username!);
     }
 
     private void StartDirectChat()

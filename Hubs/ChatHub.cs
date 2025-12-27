@@ -8,9 +8,15 @@ namespace Chatty.Hubs
 {
     public class ChatHub : Hub
     {
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(string roomCode, string user, string message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            // Send only to clients in this group
+            await Clients.Group(roomCode).SendAsync("ReceiveMessage", user, message);
+        }
+
+        public async Task JoinRoom(string roomCode)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
         }
     }
 }

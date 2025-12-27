@@ -1,0 +1,102 @@
+@page "/"
+@inject NavigationManager NavigationManager
+
+<style>
+    .landing-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+        animation: fadeInDown 0.8s ease;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: #666;
+        max-width: 600px;
+        margin-bottom: 3rem;
+        animation: fadeIn 1s ease 0.3s both;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1.5rem;
+        animation: fadeInUp 1s ease 0.6s both;
+    }
+
+    .btn-landing {
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-primary-landing {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);
+    }
+
+    .btn-primary-landing:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(118, 75, 162, 0.4);
+        color: white;
+    }
+
+    .btn-outline-landing {
+        background: white;
+        color: #764ba2;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .btn-outline-landing:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        color: #764ba2;
+    }
+
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<div class="landing-container">
+    <h1 class="hero-title">Chatty</h1>
+    <p class="hero-subtitle">
+        Secure, Real-time, Room-based messaging designed for privacy and speed. 
+        Experience the future of communication today.
+    </p>
+
+    <div class="action-buttons">
+        <a href="login" class="btn-landing btn-outline-landing">Log In</a>
+        <a href="signup" class="btn-landing btn-primary-landing">Get Started</a>
+    </div>
+</div>
