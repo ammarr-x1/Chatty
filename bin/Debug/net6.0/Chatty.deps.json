@@ -8,8 +8,6 @@
     ".NETCoreApp,Version=v6.0": {
       "Chatty/1.0.0": {
         "dependencies": {
-          "ClassLibraryDal": "1.0.0",
-          "ClassLibraryModel": "1.0.0",
           "Microsoft.AspNetCore.SignalR.Client": "8.0.4",
           "System.Data.SqlClient": "4.8.6"
         },
@@ -322,23 +320,6 @@
             "fileVersion": "8.0.23.53103"
           }
         }
-      },
-      "ClassLibraryDal/1.0.0": {
-        "dependencies": {
-          "ClassLibraryModel": "1.0.0",
-          "System.Data.SqlClient": "4.8.6"
-        },
-        "runtime": {
-          "ClassLibraryDal.dll": {}
-        }
-      },
-      "ClassLibraryModel/1.0.0": {
-        "dependencies": {
-          "System.Data.SqlClient": "4.8.6"
-        },
-        "runtime": {
-          "ClassLibraryModel.dll": {}
-        }
       }
     }
   },
@@ -557,16 +538,6 @@
       "sha512": "sha512-CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA==",
       "path": "system.threading.channels/8.0.0",
       "hashPath": "system.threading.channels.8.0.0.nupkg.sha512"
-    },
-    "ClassLibraryDal/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "ClassLibraryModel/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
     }
   }
 }

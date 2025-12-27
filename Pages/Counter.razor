@@ -1,6 +1,7 @@
 ﻿@page "/Index"
 @using Microsoft.AspNetCore.SignalR.Client
 @using Models
+@using System.Net.Http
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
@@ -54,7 +55,7 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .WithUrl("http://localhost:5286/chathub")
             .Build();
 
         hubConnection.On<string, string>("ReceiveMessage", async (user, message) =>

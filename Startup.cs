@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ClassLibraryDal;   
+using Chatty.Services;   
 
 namespace Chatty
 {
@@ -32,7 +32,6 @@ namespace Chatty
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
             services.AddSingleton<DalUser>();
-            services.AddSingleton<ClassLibraryDal.DalUser>();
             services.AddResponseCompression(opts => {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
             });
@@ -52,7 +51,7 @@ namespace Chatty
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
