@@ -1,18 +1,13 @@
-using Chatty.Data;
-using Chatty.Hubs;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
+using Chatty.Data;
+using Chatty.Services;
+using Chatty.Hubs;
 using System.Linq;
-using System.Threading.Tasks;
-using Chatty.Services;   
+using Microsoft.AspNetCore.ResponseCompression;
 
 namespace Chatty
 {
@@ -25,19 +20,20 @@ namespace Chatty
 
         public IConfiguration Configuration { get; }
 
-       
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
             services.AddSingleton<DalUser>();
+            services.AddSingleton<ChatService>();
+            services.AddScoped<UserSession>();
+            
             services.AddResponseCompression(opts => {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
             });
         }
 
-       
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -47,11 +43,10 @@ namespace Chatty
             else
             {
                 app.UseExceptionHandler("/Error");
-               
                 app.UseHsts();
             }
 
-            // app.UseHttpsRedirection();
+            // app.UseHttpsRedirection(); // Disabled for local dev certificate issues
             app.UseStaticFiles();
 
             app.UseRouting();

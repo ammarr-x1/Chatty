@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject NavigationManager NavigationManager
 @inject Chatty.Services.DalUser DalUser
+@inject Chatty.Services.UserSession UserSession
 @using System.Threading.Tasks
 
 
@@ -101,6 +102,26 @@
         { "alice", "alice123" }
     };
 
+    private bool AuthenticateUser(string user, string pass)
+    {
+        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
+            return false;
+
+        // Use mock data
+        if (dummyUsers.TryGetValue(user.ToLower(), out var storedPassword) && storedPassword == pass)
+        {
+             return true;
+        }
+        
+        // Also allow new users registered in Service
+        if (DalUser.AuthenticateUser(user, pass).Result) 
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private async Task Login()
     {
         // Reset states
@@ -108,31 +129,22 @@
         showSuccess = false;
         isLoading = true;
 
-        // Simulate network delay for realistic UX
-        await Task.Delay(1000);
+        await Task.Delay(1000); 
 
         bool isAuthenticated = AuthenticateUser(username, password);
 
         if (isAuthenticated)
         {
+            UserSession.Username = username; // Set Session
             showSuccess = true;
-            await Task.Delay(800); // Show success message briefly
-            NavigationManager.NavigateTo("/chat");
+            await Task.Delay(800);
+            NavigationManager.NavigateTo("/home"); // Redirect to Home
         }
         else
         {
             showError = true;
             isLoading = false;
         }
-    }
-
-    private bool AuthenticateUser(string user, string pass)
-    {
-        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
-            return false;
-
-        return dummyUsers.TryGetValue(user.ToLower(), out var storedPassword) 
-               && storedPassword == pass;
     }
 
     private async Task HandleKeyPress(KeyboardEventArgs e)

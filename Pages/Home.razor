@@ -1,0 +1,494 @@
+@page "/home"
+@inject NavigationManager NavigationManager
+@inject Chatty.Services.ChatService ChatService
+@inject Chatty.Services.UserSession UserSession
+
+<style>
+    .home-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        animation: gradientShift 15s ease infinite;
+        background-size: 200% 200%;
+        padding: 2rem 0;
+    }
+
+    @@keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .page-header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        animation: slideDown 0.6s ease-out;
+        backdrop-filter: blur(10px);
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .welcome-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        animation: fadeIn 0.8s ease 0.3s both;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .btn-logout {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+    }
+
+    .btn-logout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        color: white;
+    }
+
+    .enhanced-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        animation: slideUp 0.6s ease-out;
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .enhanced-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header-custom::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @@keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .card-header-custom h5 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+    }
+
+    .chat-list-item {
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.25rem 1.5rem;
+        transition: all 0.3s ease;
+        background: white;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .chat-list-item:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateX(5px);
+        border-left: 4px solid #667eea;
+    }
+
+    .chat-list-item:last-child {
+        border-bottom: none;
+    }
+
+    .badge-custom {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        animation: pulse 2s ease infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .action-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        height: 100%;
+        backdrop-filter: blur(10px);
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-icon {
+        font-size: 4rem;
+        filter: grayscale(0);
+        transition: all 0.3s ease;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .action-card:hover .action-icon {
+        transform: scale(1.1);
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-success-custom {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-success-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(86, 171, 47, 0.4);
+        color: white;
+    }
+
+    .input-group-custom {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group-custom .form-control {
+        border: 2px solid #e0e0e0;
+        border-right: none;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .input-group-custom .form-control:focus {
+        border-color: #667eea;
+        box-shadow: none;
+    }
+
+    .input-group-custom .btn {
+        border: 2px solid #667eea;
+        border-left: none;
+    }
+
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: #999;
+        animation: fadeIn 0.6s ease;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .join-room-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .join-room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert-warning-custom {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3);
+        animation: slideDown 0.5s ease-out;
+    }
+
+    .alert-warning-custom a {
+        color: white;
+        font-weight: 600;
+        text-decoration: underline;
+    }
+
+    .stagger-1 { animation-delay: 0.1s; }
+    .stagger-2 { animation-delay: 0.2s; }
+    .stagger-3 { animation-delay: 0.3s; }
+    .stagger-4 { animation-delay: 0.4s; }
+</style>
+
+@if (string.IsNullOrEmpty(UserSession.Username))
+{
+    <div class="home-container">
+        <div class="container">
+            <div class="alert alert-warning-custom">
+                <strong>🔒 Authentication Required</strong><br />
+                Please login first to access the chat. <a href="/">Go to Login</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="home-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="page-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="welcome-text">👋 Welcome, @UserSession.Username</h2>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-logout" @onclick="Logout">
+                            <span>🚪</span> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Active Chats Section -->
+                <div class="col-lg-4 mb-4 stagger-1">
+                    <div class="enhanced-card">
+                        <div class="card-header-custom">
+                            <h5>💬 Active Chats</h5>
+                        </div>
+                        <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                            @foreach (var room in myRooms)
+                            {
+                                <a href="chat/@room" class="chat-list-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            @if(room.StartsWith("DM-")) {
+                                                <div><strong>👤 Private Chat</strong></div>
+                                                <small class="text-muted">@GetPrivateChatName(room)</small>
+                                            } else {
+                                                <div><strong>📢 Group Room</strong></div>
+                                                <small class="text-muted">@room</small>
+                                            }
+                                        </div>
+                                        <span class="badge-custom">Active</span>
+                                    </div>
+                                </a>
+                            }
+                            @if (myRooms.Count == 0)
+                            {
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">💭</div>
+                                    <div>No active chats yet</div>
+                                    <small class="text-muted">Start a conversation to get going!</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Section -->
+                <div class="col-lg-8">
+                    <div class="row">
+                        <!-- Start Private Chat -->
+                        <div class="col-md-6 mb-4 stagger-2">
+                            <div class="action-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="action-icon mb-3">👤</div>
+                                    <h5 class="fw-bold mb-2">Direct Message</h5>
+                                    <p class="text-muted mb-4">Start a private conversation</p>
+                                    <div class="input-group input-group-custom mb-3">
+                                        <input @bind="targetUser" 
+                                               type="text" 
+                                               class="form-control" 
+                                               placeholder="Enter username">
+                                        <button class="btn btn-primary-custom" @onclick="StartDirectChat">
+                                            Chat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Room -->
+                        <div class="col-md-6 mb-4 stagger-3">
+                            <div class="action-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="action-icon mb-3">📢</div>
+                                    <h5 class="fw-bold mb-2">Create Group</h5>
+                                    <p class="text-muted mb-4">Start a new group room</p>
+                                    <button class="btn btn-success-custom w-100" @onclick="CreateRoom">
+                                        <span>✨</span> Create New Room
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Join Room -->
+                        <div class="col-12 stagger-4">
+                            <div class="join-room-card">
+                                <div class="card-body p-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3" style="font-size: 2.5rem;">🔑</div>
+                                                <div>
+                                                    <h5 class="mb-1 fw-bold">Join a Room</h5>
+                                                    <p class="text-muted mb-0 small">Enter a room code to join</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-custom">
+                                                <input @bind="joinCode" 
+                                                       type="text" 
+                                                       class="form-control" 
+                                                       placeholder="e.g. AB123">
+                                                <button class="btn btn-primary-custom" @onclick="JoinRoom">
+                                                    Join
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<string> myRooms = new();
+    private string targetUser = "";
+    private string joinCode = "";
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(UserSession.Username))
+        {
+            myRooms = ChatService.GetUserChats(UserSession.Username);
+        }
+    }
+
+    private void StartDirectChat()
+    {
+        if (!string.IsNullOrWhiteSpace(targetUser))
+        {
+            var code = ChatService.StartDirectChat(UserSession.Username!, targetUser);
+            NavigationManager.NavigateTo($"chat/{code}");
+        }
+    }
+
+    private void CreateRoom()
+    {
+        var code = ChatService.CreateRoom(UserSession.Username!);
+        NavigationManager.NavigateTo($"chat/{code}");
+    }
+
+    private void JoinRoom()
+    {
+        if (!string.IsNullOrWhiteSpace(joinCode))
+        {
+            bool success = ChatService.JoinRoom(UserSession.Username!, joinCode);
+            if (success)
+            {
+                NavigationManager.NavigateTo($"chat/{joinCode}");
+            }
+        }
+    }
+    
+    private string GetPrivateChatName(string roomCode) {
+        // RoomCode format: DM-Alice_Bob
+        var parts = roomCode.Substring(3).Split('_');
+        return parts.FirstOrDefault(p => p != UserSession.Username) ?? "Unknown";
+    }
+
+    private void Logout()
+    {
+        UserSession.Username = null;
+        NavigationManager.NavigateTo("/");
+    }
+}

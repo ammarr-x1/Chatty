@@ -1,6 +1,7 @@
 @page "/signup"
 @inject NavigationManager NavigationManager
 @inject Chatty.Services.DalUser DalUser
+@inject Chatty.Services.UserSession UserSession
 
 <div class="login-container">
     <div class="container">
@@ -83,9 +84,9 @@
 </div>
 
 @code {
-    private string username;
-    private string password;
-    private string confirmPassword;
+    private string username = "";
+    private string password = "";
+    private string confirmPassword = "";
     private bool showError = false;
     private string errorMessage = "";
     private bool showSuccess = false;
@@ -105,7 +106,6 @@
             isLoading = false;
             return;
         }
-        NavigationManager.NavigateTo("/");
 
         //bool isRegistered = await DalUser.RegisterUser(username, password);
 
