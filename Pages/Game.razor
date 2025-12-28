@@ -503,9 +503,9 @@
     [JSInvokable]
     public async Task HandleKeyPress(string direction)
     {
-        if (hubConnection is not null && gameState?.Status == GameStatus.InProgress)
+        if (hubConnection?.State == HubConnectionState.Connected && gameState?.Status == GameStatus.InProgress)
         {
-            await hubConnection.SendAsync("MovePlayer", direction);
+            await hubConnection.SendAsync("SetDirection", direction);
         }
     }
 

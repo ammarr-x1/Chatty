@@ -27,7 +27,6 @@ public class GameHub : Hub
 
         await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
         
-        // Notify all players in room
         await Clients.Group(roomCode).SendAsync("PlayerJoined", username);
         await Clients.Group(roomCode).SendAsync("GameStateUpdated", room.GameState);
         
@@ -44,10 +43,8 @@ public class GameHub : Hub
             return null;
         }
 
-        // Add this connection to the room's SignalR group
         await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
         
-        // Return the current game state
         return state;
     }
 
@@ -70,30 +67,17 @@ public class GameHub : Hub
         }
     }
 
-    public async Task MovePlayer(string direction)
+    public async Task SetDirection(string direction)
     {
         var room = _gameManager.GetRoomByConnectionId(Context.ConnectionId);
         
         if (room == null)
             return;
 
-        var success = _gameManager.ProcessMove(room.RoomCode, Context.ConnectionId, direction);
+        // Just set the direction - game loop will handle movement
+        _gameManager.SetPlayerDirection(room.RoomCode, Context.ConnectionId, direction);
         
-        if (success)
-        {
-            // Broadcast updated game state to all players in room
-            await Clients.Group(room.RoomCode).SendAsync("GameStateUpdated", room.GameState);
-
-            // Check if game ended
-            if (room.GameState.Status == GameStatus.RunnersWin)
-            {
-                await Clients.Group(room.RoomCode).SendAsync("GameEnded", "Runners");
-            }
-            else if (room.GameState.Status == GameStatus.ChasersWin)
-            {
-                await Clients.Group(room.RoomCode).SendAsync("GameEnded", "Chasers");
-            }
-        }
+        // No need to broadcast here - game loop handles it
     }
 
     public async Task LeaveRoom()

@@ -25,6 +25,15 @@ public enum GameStatus
     ChasersWin
 }
 
+public enum Direction
+{
+    None,
+    Up,
+    Down,
+    Left,
+    Right
+}
+
 public class Position
 {
     public int X { get; set; }
@@ -50,6 +59,18 @@ public class Position
     {
         return Math.Sqrt(Math.Pow(X - other.X, 2) + Math.Pow(Y - other.Y, 2));
     }
+
+    public Position GetNextPosition(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.Up => new Position(X, Y - 1),
+            Direction.Down => new Position(X, Y + 1),
+            Direction.Left => new Position(X - 1, Y),
+            Direction.Right => new Position(X + 1, Y),
+            _ => new Position(X, Y)
+        };
+    }
 }
 
 public class PlayerState
@@ -60,9 +81,14 @@ public class PlayerState
     public PlayerRole Role { get; set; }
     public bool IsAlive { get; set; } = true;
     public int VisionRadius { get; set; } = 5;
-    public string Color { get; set; } = "yellow"; // Visual color identifier
-    public int Score { get; set; } = 0; // For runners collecting food
+    public string Color { get; set; } = "yellow";
+    public int Score { get; set; } = 0;
     public DateTime LastMoveTime { get; set; } = DateTime.UtcNow;
+    
+    // Movement properties
+    public Direction CurrentDirection { get; set; } = Direction.None;
+    public Direction NextDirection { get; set; } = Direction.None; // Queued direction change
+    public bool IsStopped { get; set; } = true; // Stopped by wall
 }
 
 public class GameMap
@@ -96,23 +122,7 @@ public class GameMap
     [JsonIgnore]
     public CellType[,] Grid { get; private set; }
 
-    // Serializable version of Grid for SignalR
-    public CellType[][] GridData
-    {
-        get
-        {
-            var result = new CellType[Height][];
-            for (int y = 0; y < Height; y++)
-            {
-                result[y] = new CellType[Width];
-                for (int x = 0; x < Width; x++)
-                {
-                    result[y][x] = Grid[x, y];
-                }
-            }
-            return result;
-        }
-    }
+    public CellType[][] GridData { get; set; } = Array.Empty<CellType[]>();
 
     public GameMap()
     {
@@ -124,17 +134,21 @@ public class GameMap
 
     private void InitializeMap()
     {
+        GridData = new CellType[Height][];
         for (int y = 0; y < Height; y++)
         {
+            GridData[y] = new CellType[Width];
             for (int x = 0; x < Width; x++)
             {
                 char cell = MapLayout[y][x];
-                Grid[x, y] = cell switch
+                var type = cell switch
                 {
                     '#' => CellType.Wall,
                     '.' => CellType.Food,
                     _ => CellType.Empty
                 };
+                Grid[x, y] = type;
+                GridData[y][x] = type;
             }
         }
     }
@@ -160,6 +174,7 @@ public class GameMap
         if (HasFood(pos))
         {
             Grid[pos.X, pos.Y] = CellType.Empty;
+            GridData[pos.Y][pos.X] = CellType.Empty;
         }
     }
 
@@ -198,17 +213,13 @@ public class GameState
 
     public bool CanStartGame()
     {
-        // Need at least 2 players (1 runner, 1 chaser)
         return Players.Count >= 2 && Players.Count <= 5;
     }
 
     public void AssignRoles()
     {
         var playerList = Players.Values.ToList();
-        
-        // First player is chaser, rest are runners
-        // Or you can do: first 1-2 are chasers, rest runners
-        int chaserCount = Math.Max(1, playerList.Count / 3); // ~33% chasers
+        int chaserCount = Math.Max(1, playerList.Count / 3);
 
         var colors = new[] { "red", "magenta", "cyan", "orange", "pink" };
         int colorIndex = 0;
@@ -230,7 +241,6 @@ public class GameState
 
     public void SpawnPlayers()
     {
-        // Spawn positions for runners and chasers
         var runnerSpawns = new List<Position>
         {
             new Position(1, 1),
@@ -251,6 +261,10 @@ public class GameState
 
         foreach (var player in Players.Values)
         {
+            player.CurrentDirection = Direction.None;
+            player.NextDirection = Direction.None;
+            player.IsStopped = true;
+            
             if (player.Role == PlayerRole.Runner && runnerIndex < runnerSpawns.Count)
             {
                 player.Position = runnerSpawns[runnerIndex++];

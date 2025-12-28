@@ -29,6 +29,8 @@ namespace Chatty
             services.AddSingleton<ChatService>();
             services.AddScoped<UserSession>();
             services.AddSingleton<GameManager>();
+            services.AddSingleton<GameLoopService>();
+            services.AddHostedService<GameLoopService>();
             
             // Auth Architecture
             services.AddSingleton<MongoDbContext>();

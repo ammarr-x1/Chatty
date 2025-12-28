@@ -1,11 +1,28 @@
-// Game keyboard controls for Pacman multiplayer
+// wwwroot/js/game.js
 
-window.setupKeyboardControls = (dotNetHelper) => {
-    const keyHandler = (event) => {
+window.setupKeyboardControls = (dotnetHelper) => {
+    // Track which keys are currently pressed to prevent repeating
+    const pressedKeys = new Set();
+
+    // Remove existing listeners if any
+    if (window.keydownHandler) {
+        document.removeEventListener('keydown', window.keydownHandler);
+    }
+    if (window.keyupHandler) {
+        document.removeEventListener('keyup', window.keyupHandler);
+    }
+
+    window.keydownHandler = async (event) => {
+        const key = event.key.toLowerCase();
+
+        // Ignore if key is already pressed (prevents repeat)
+        if (pressedKeys.has(key)) {
+            return;
+        }
+
         let direction = null;
 
-        // Map keys to directions
-        switch (event.key.toLowerCase()) {
+        switch (key) {
             case 'w':
             case 'arrowup':
                 direction = 'up';
@@ -28,29 +45,21 @@ window.setupKeyboardControls = (dotNetHelper) => {
                 break;
         }
 
-        // Send direction to Blazor component
         if (direction) {
-            dotNetHelper.invokeMethodAsync('HandleKeyPress', direction);
+            pressedKeys.add(key);
+            try {
+                await dotnetHelper.invokeMethodAsync('HandleKeyPress', direction);
+            } catch (error) {
+                console.error('Error sending key press:', error);
+            }
         }
     };
 
-    // Remove existing listener if any
-    if (window.gameKeyHandler) {
-        document.removeEventListener('keydown', window.gameKeyHandler);
-    }
+    window.keyupHandler = (event) => {
+        const key = event.key.toLowerCase();
+        pressedKeys.delete(key);
+    };
 
-    // Add new listener
-    window.gameKeyHandler = keyHandler;
-    document.addEventListener('keydown', keyHandler);
-
-    console.log('Keyboard controls initialized');
-};
-
-// Cleanup function
-window.cleanupKeyboardControls = () => {
-    if (window.gameKeyHandler) {
-        document.removeEventListener('keydown', window.gameKeyHandler);
-        window.gameKeyHandler = null;
-        console.log('Keyboard controls cleaned up');
-    }
+    document.addEventListener('keydown', window.keydownHandler);
+    document.addEventListener('keyup', window.keyupHandler);
 };
