@@ -60,7 +60,7 @@
                     </div>
 
                     <div class="lobby-actions">
-                        @if (isHost && (gameState?.Status == GameStatus.Waiting || gameState?.Status == GameStatus.RunnersWin || gameState?.Status == GameStatus.ChasersWin))
+                        @if (isHost && gameState?.Status == GameStatus.Waiting)
                         {
                             <button class="btn btn-start" @onclick="StartGame" disabled="@(playerCount < 2)">
                                 @if (playerCount < 2)
@@ -73,7 +73,7 @@
                                 }
                             </button>
                         }
-                        else if (gameState?.Status == GameStatus.Waiting || gameState?.Status == GameStatus.RunnersWin || gameState?.Status == GameStatus.ChasersWin)
+                        else if (gameState?.Status == GameStatus.Waiting)
                         {
                             <div class="waiting-message">
                                 Waiting for host to start the game...

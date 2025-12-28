@@ -78,8 +78,6 @@ public class PlayerState
     public string ConnectionId { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public Position Position { get; set; } = new Position(0, 0);
-    [JsonIgnore]
-    public Position PreviousPosition { get; set; } = new Position(0, 0);
     public PlayerRole Role { get; set; }
     public bool IsAlive { get; set; } = true;
     public int VisionRadius { get; set; } = 5;
@@ -276,25 +274,6 @@ public class GameState
             {
                 player.Position = chaserSpawns[chaserIndex++];
             }
-            player.PreviousPosition = player.Position;
-        }
-    }
-
-    public void Reset()
-    {
-        Status = GameStatus.Waiting;
-        Map = new GameMap();
-        TotalFood = Map.CountRemainingFood();
-        RemainingFood = TotalFood;
-        
-        foreach (var player in Players.Values)
-        {
-            player.IsAlive = true;
-            player.Score = 0;
-            player.IsStopped = true;
-            player.CurrentDirection = Direction.None;
-            player.NextDirection = Direction.None;
-            player.Position = new Position(0, 0); // Will be set by SpawnPlayers on next start
         }
     }
 }
