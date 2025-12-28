@@ -332,6 +332,25 @@ else
             </div>
 
             <div class="row">
+                <!-- Play Game Section -->
+                <div class="col-12 mb-4 stagger-0">
+                    <div class="enhanced-card" style="background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);">
+                        <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                            <div class="text-white">
+                                <h3 class="fw-bold mb-1">🎮 Multiplayer Pacman</h3>
+                                <p class="mb-0 opacity-75">Challenge your friends in a high-stakes chase!</p>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <button class="btn btn-light fw-bold" @onclick="CreateGameRoom" style="width: auto;">Host Game</button>
+                                <div class="input-group input-group-sm" style="width: 200px;">
+                                    <input @bind="gameJoinCode" class="form-control" placeholder="Room Code">
+                                    <button class="btn btn-dark" @onclick="JoinGameRoom" style="width: auto;">Join</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Active Chats Section -->
                 <div class="col-lg-4 mb-4 stagger-1">
                     <div class="enhanced-card">
@@ -342,21 +361,28 @@ else
                             @foreach (var room in myRooms)
                             {
                                 <div class="d-flex align-items-center border-bottom">
-                                <a href="chat/@room" class="chat-list-item flex-grow-1 border-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            @if(room.StartsWith("DM-")) {
+                                @if(room.StartsWith("DM-")) {
+                                    <a href="chat/@room" class="chat-list-item flex-grow-1 border-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
                                                 <div><strong>👤 Private Chat</strong></div>
                                                 <small class="text-muted">@GetPrivateChatName(room)</small>
-                                            } else {
-                                                <div><strong>📢 Group Room</strong></div>
-                                                <small class="text-muted">@room</small>
-                                            }
+                                            </div>
+                                            <span class="badge-custom">Active</span>
                                         </div>
-                                        <span class="badge-custom">Active</span>
-                                    </div>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteChat(room)" title="Delete Chat" style="z-index: 2;">
+                                    </a>
+                                } else {
+                                    <a href="lobby?room=@room&username=@UserSession.Username" class="chat-list-item flex-grow-1 border-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div><strong>📢 Game Lobby</strong></div>
+                                                <small class="text-muted">Code: @room</small>
+                                            </div>
+                                            <span class="badge-custom" style="background: #4caf50;">Waiting</span>
+                                        </div>
+                                    </a>
+                                }
+                                <button class="btn btn-sm btn-outline-danger ms-2 me-2" @onclick="() => DeleteChat(room)" title="Delete Chat" style="z-index: 2; width: auto; padding: 5px 10px;">
                                     🗑️
                                 </button>
                             </div>
@@ -450,6 +476,7 @@ else
     private List<string> myRooms = new();
     private string targetUser = "";
     private string joinCode = "";
+    private string gameJoinCode = "";
 
     protected override void OnInitialized()
     {
@@ -503,7 +530,7 @@ else
     private void CreateRoom()
     {
         var code = ChatService.CreateRoom(UserSession.Username!);
-        NavigationManager.NavigateTo($"chat/{code}");
+        NavigationManager.NavigateTo($"lobby?room={code}&username={UserSession.Username}");
     }
 
     private void JoinRoom()
@@ -513,8 +540,22 @@ else
             bool success = ChatService.JoinRoom(UserSession.Username!, joinCode);
             if (success)
             {
-                NavigationManager.NavigateTo($"chat/{joinCode}");
+                NavigationManager.NavigateTo($"lobby?room={joinCode}&username={UserSession.Username}");
             }
+        }
+    }
+
+    private void CreateGameRoom()
+    {
+        var code = ChatService.CreateRoom(UserSession.Username!);
+        NavigationManager.NavigateTo($"lobby?room={code}&username={UserSession.Username}");
+    }
+
+    private void JoinGameRoom()
+    {
+        if (!string.IsNullOrWhiteSpace(gameJoinCode))
+        {
+            NavigationManager.NavigateTo($"lobby?room={gameJoinCode}&username={UserSession.Username}");
         }
     }
     

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PacmanMultiplayer.Hubs;
+using PacmanMultiplayer.Services;
 using Chatty.Data;
 using Chatty.Services;
 using Chatty.Hubs;
@@ -26,6 +28,7 @@ namespace Chatty
             services.AddServerSideBlazor();
             services.AddSingleton<ChatService>();
             services.AddScoped<UserSession>();
+            services.AddSingleton<GameManager>();
             
             // Auth Architecture
             services.AddSingleton<MongoDbContext>();
@@ -58,6 +61,7 @@ namespace Chatty
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<GameHub>("/gamehub");
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

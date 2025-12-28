@@ -1,0 +1,624 @@
+@page "/lobby"
+@using Microsoft.AspNetCore.SignalR.Client
+@using PacmanMultiplayer.Models
+@inject NavigationManager Navigation
+@inject Chatty.Services.UserSession UserSession
+@implements IAsyncDisposable
+
+<PageTitle>Game Lobby - @roomCode</PageTitle>
+
+<div class="lobby-wrapper">
+    <div class="lobby-container">
+        <div class="lobby-card main-card">
+            <div class="lobby-header">
+                <h1>🎮 Game Lobby</h1>
+                <div class="room-code">Room: <span>@roomCode</span></div>
+            </div>
+
+            <div class="lobby-content">
+                <!-- Players Section -->
+                <div class="players-section">
+                    <h2>Players (@playerCount/5)</h2>
+                    <div class="players-list">
+                        @if (gameState == null)
+                        {
+                            <div class="empty-state">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-3">Connecting to lobby...</p>
+                            </div>
+                        }
+                        else if (gameState.Players.Count == 0)
+                        {
+                            <div class="empty-state">
+                                <p>No players yet</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var player in gameState.Players.Values)
+                            {
+                                <div class="player-card @(player.ConnectionId == hubConnection?.ConnectionId ? "you" : "")">
+                                    <div class="player-dot" style="background-color: @player.Color"></div>
+                                    <div class="player-info">
+                                        <div class="player-name">
+                                            @player.Username
+                                            @if (player.ConnectionId == gameState.HostConnectionId)
+                                            {
+                                                <span class="host-badge">HOST</span>
+                                            }
+                                            @if (player.ConnectionId == hubConnection?.ConnectionId)
+                                            {
+                                                <span class="you-badge">YOU</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="lobby-actions">
+                        @if (isHost && gameState?.Status == GameStatus.Waiting)
+                        {
+                            <button class="btn btn-start" @onclick="StartGame" disabled="@(playerCount < 2)">
+                                @if (playerCount < 2)
+                                {
+                                    <span>Waiting for players...</span>
+                                }
+                                else
+                                {
+                                    <span>🚀 Start Game</span>
+                                }
+                            </button>
+                        }
+                        else if (gameState?.Status == GameStatus.Waiting)
+                        {
+                            <div class="waiting-message">
+                                Waiting for host to start the game...
+                            </div>
+                        }
+
+                        <button class="btn btn-leave" @onclick="LeaveRoom">
+                            Leave Room
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div class="chat-section">
+                    <div class="chat-header-minimal">
+                        <h3>💬 Room Chat</h3>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        @foreach (var msg in chatMessages)
+                        {
+                            bool isMine = msg.User == UserSession.Username;
+                            <div class="chat-msg @(isMine ? "mine" : "theirs")">
+                                <div class="chat-bubble">
+                                    @if (!isMine) {
+                                        <span class="chat-user">@msg.User</span>
+                                    }
+                                    <span class="chat-text">@msg.Message</span>
+                                </div>
+                                <span class="chat-time">@msg.Timestamp.ToString("HH:mm")</span>
+                            </div>
+                        }
+                        @if (chatMessages.Count == 0)
+                        {
+                            <div class="chat-empty">Say hello to the other players!</div>
+                        }
+                    </div>
+                    <div class="chat-input-row">
+                        <input @bind="newChatMessage" 
+                               @bind:event="oninput"
+                               @onkeypress="HandleChatKeyPress"
+                               placeholder="Type a message..." 
+                               class="chat-input" />
+                        <button class="btn-chat-send" @onclick="SendChatMessage">➤</button>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+
+            <div class="game-rules-footer">
+                <h3>🎯 Quick Rules</h3>
+                <span>Runners (Yellow) collect food. Chasers catch runners. Use WASD or Arrows to move.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lobby-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .lobby-container {
+        width: 100%;
+        max-width: 1000px;
+    }
+
+    .lobby-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .lobby-header {
+        text-align: center;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 1rem;
+    }
+
+    .lobby-header h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        color: #333;
+    }
+
+    .room-code {
+        margin-top: 0.5rem;
+        color: #666;
+    }
+
+    .room-code span {
+        font-weight: 800;
+        color: #667eea;
+        background: #eef1ff;
+        padding: 4px 12px;
+        border-radius: 8px;
+        letter-spacing: 1px;
+    }
+
+    .lobby-content {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+        min-height: 480px;
+    }
+
+    @@media (max-width: 850px) {
+        .lobby-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Players List */
+    .players-list {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 1rem;
+        height: 280px;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+        border: 1px solid #eee;
+    }
+
+    .player-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 2px solid transparent;
+        transition: transform 0.2s;
+    }
+
+    .player-card:hover { opacity: 0.9; }
+
+    .player-card.you {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+
+    .player-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    .player-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .host-badge {
+        background: #ffd700;
+        color: #000;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .you-badge {
+        background: #667eea;
+        color: #fff;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    /* Chat Section */
+    .chat-section {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #eee;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .chat-header-minimal {
+        padding: 0.75rem 1.25rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+    }
+
+    .chat-header-minimal h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: #555;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 1.25rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        height: 320px;
+        background: #fafafa;
+    }
+
+    .chat-msg {
+        display: flex;
+        flex-direction: column;
+        max-width: 85%;
+    }
+
+    .chat-msg.mine {
+        align-self: flex-end;
+    }
+
+    .chat-msg.theirs {
+        align-self: flex-start;
+    }
+
+    .chat-bubble {
+        padding: 8px 14px;
+        border-radius: 16px;
+        font-size: 0.9rem;
+        position: relative;
+        line-height: 1.4;
+    }
+
+    .chat-msg.mine .chat-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    .chat-msg.theirs .chat-bubble {
+        background: #eee;
+        color: #333;
+        border-bottom-left-radius: 2px;
+    }
+
+    .chat-user {
+        display: block;
+        font-weight: 800;
+        font-size: 0.7rem;
+        margin-bottom: 2px;
+        color: #777;
+    }
+
+    .chat-time {
+        font-size: 0.65rem;
+        color: #aaa;
+        margin-top: 2px;
+        padding: 0 4px;
+    }
+
+    .chat-input-row {
+        padding: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        background: white;
+        border-top: 1px solid #eee;
+    }
+
+    .chat-input {
+        flex: 1;
+        border: 2px solid #f0f0f0;
+        padding: 10px 18px;
+        border-radius: 25px;
+        outline: none;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .chat-input:focus {
+        border-color: #667eea;
+        background: #fff;
+    }
+
+    .btn-chat-send {
+        background: #667eea;
+        color: white;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-chat-send:hover {
+        transform: scale(1.05) rotate(-5deg);
+        background: #764ba2;
+    }
+
+    .chat-empty {
+        text-align: center;
+        color: #ccc;
+        font-size: 0.85rem;
+        margin-top: 3rem;
+        font-style: italic;
+    }
+
+    /* Actions */
+    .lobby-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1rem;
+    }
+
+    .btn-start {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: #1a5c37;
+        box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    }
+
+    .btn-start:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(67, 233, 123, 0.4);
+    }
+
+    .btn-start:disabled {
+        opacity: 0.6;
+        filter: grayscale(0.5);
+        cursor: not-allowed;
+    }
+
+    .btn-leave {
+        background: #f8f9fa;
+        color: #dc3545;
+        border: 1px solid #eee;
+    }
+
+    .btn-leave:hover {
+        background: #fff5f5;
+        border-color: #fab1a0;
+    }
+
+    .error-message {
+        background: #fff5f5;
+        color: #d63031;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 5px solid #d63031;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+    }
+
+    .game-rules-footer {
+        padding: 1rem 1.5rem;
+        background: #f0f4ff;
+        border-radius: 16px;
+        font-size: 0.85rem;
+        color: #555;
+        border: 1px dashed #667eea;
+    }
+
+    .game-rules-footer h3 {
+        margin: 0 0 5px 0;
+        font-size: 0.95rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? room { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? username { get; set; }
+
+    private HubConnection? hubConnection;
+    private string roomCode = "";
+    private GameState? gameState;
+    private string errorMessage = "";
+    private bool isHost = false;
+    private int playerCount => gameState?.Players.Count ?? 0;
+
+    // Chat related
+    private List<Chatty.Services.ChatMessage> chatMessages = new();
+    private string newChatMessage = "";
+
+    async Task StartHub()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/gamehub"), options => {
+                options.HttpMessageHandlerFactory = handler => {
+                    if (handler is HttpClientHandler clientHandler)
+                    {
+                        clientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+                    }
+                    return handler;
+                };
+            })
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string>("PlayerJoined", (playerName) =>
+        {
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<GameState>("GameStateUpdated", (state) =>
+        {
+            gameState = state;
+            isHost = state.HostConnectionId == hubConnection.ConnectionId;
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On("GameStarted", () =>
+        {
+            Navigation.NavigateTo($"/game?room={roomCode}&username={username}");
+        });
+
+        hubConnection.On<string>("Error", (message) =>
+        {
+            errorMessage = message;
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string, string>("ReceiveChatMessage", (user, message) =>
+        {
+            chatMessages.Add(new Chatty.Services.ChatMessage 
+            { 
+                User = user, 
+                Message = message, 
+                Timestamp = DateTime.Now 
+            });
+            InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await hubConnection.StartAsync();
+            if (hubConnection.State == HubConnectionState.Connected)
+            {
+                await hubConnection.InvokeAsync<bool>("JoinRoom", roomCode, username);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to connect: {ex.Message}";
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(room) || string.IsNullOrEmpty(username))
+        {
+            Navigation.NavigateTo("/home");
+            return;
+        }
+
+        roomCode = room;
+        await StartHub();
+    }
+
+    private async Task StartGame()
+    {
+        if (hubConnection?.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("StartGame", roomCode);
+        }
+    }
+
+    private async Task LeaveRoom()
+    {
+        try 
+        {
+            if (hubConnection?.State == HubConnectionState.Connected)
+            {
+                await hubConnection.SendAsync("LeaveRoom");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error leaving room: {ex.Message}");
+        }
+        finally
+        {
+            Navigation.NavigateTo("/home");
+        }
+    }
+
+    private async Task SendChatMessage()
+    {
+        if (hubConnection?.State == HubConnectionState.Connected && !string.IsNullOrWhiteSpace(newChatMessage))
+        {
+            await hubConnection.SendAsync("SendChatMessage", newChatMessage);
+            newChatMessage = "";
+        }
+    }
+
+    private async Task HandleChatKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendChatMessage();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

@@ -1,0 +1,553 @@
+@page "/game"
+@using Microsoft.AspNetCore.SignalR.Client
+@using PacmanMultiplayer.Models
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Game - Pacman Multiplayer</PageTitle>
+
+<div class="game-container">
+    <div class="game-sidebar">
+        <div class="game-header">
+            <h2>🎮 Pacman Chase</h2>
+            <div class="room-info">Room: @roomCode</div>
+        </div>
+
+        <div class="game-stats">
+            <div class="stat-card">
+                <div class="stat-label">Food Remaining</div>
+                <div class="stat-value">@(gameState?.RemainingFood ?? 0)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Your Role</div>
+                <div class="stat-value role-@currentPlayer?.Role.ToString().ToLower()">
+                    @currentPlayer?.Role
+                </div>
+            </div>
+        </div>
+
+        <div class="players-panel">
+            <h3>Players</h3>
+            @if (gameState != null)
+            {
+                @foreach (var player in gameState.Players.Values)
+                {
+                    <div class="player-item @(player.IsAlive ? "alive" : "dead")">
+                        <div class="player-dot" style="background-color: @player.Color"></div>
+                        <div class="player-details">
+                            <span class="player-name">@player.Username</span>
+                            @if (!player.IsAlive)
+                            {
+                                <span class="dead-badge">💀</span>
+                            }
+                        </div>
+                        @if (player.Role == PlayerRole.Runner)
+                        {
+                            <div class="player-score">@player.Score</div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        @if (gameState?.Status == GameStatus.RunnersWin || gameState?.Status == GameStatus.ChasersWin)
+        {
+            <div class="game-over-panel">
+                <h2>🎉 Game Over!</h2>
+                <p class="winner">
+                    @(gameState.Status == GameStatus.RunnersWin ? "Runners Win!" : "Chasers Win!")
+                </p>
+                <button class="btn btn-primary" @onclick="ReturnToLobby">
+                    Return to Lobby
+                </button>
+            </div>
+        }
+
+        <div class="controls-info">
+            <h4>Controls</h4>
+            <div class="key-grid">
+                <kbd>W</kbd><kbd>↑</kbd>
+                <kbd>A</kbd><kbd>←</kbd>
+                <kbd>S</kbd><kbd>↓</kbd>
+                <kbd>D</kbd><kbd>→</kbd>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-board-container">
+        <div class="game-board" style="grid-template-columns: repeat(@(gameState?.Map.Width ?? 30), 20px); grid-template-rows: repeat(@(gameState?.Map.Height ?? 19), 20px);">
+            @if (gameState != null && currentPlayer != null)
+            {
+                @for (int y = 0; y < gameState.Map.Height; y++)
+                {
+                    @for (int x = 0; x < gameState.Map.Width; x++)
+                    {
+                        var pos = new Position(x, y);
+                        var cellType = gameState.Map.GridData[y][x];
+                        var isVisible = IsVisible(pos, currentPlayer.Position, currentPlayer.VisionRadius);
+                        var playerHere = GetPlayerAtPosition(pos);
+
+                        <div class="cell @GetCellClass(cellType, isVisible, playerHere)">
+                            @if (isVisible)
+                            {
+                                @if (playerHere != null)
+                                {
+                                    <div class="player-sprite" style="background-color: @playerHere.Color">
+                                        @if (playerHere.Role == PlayerRole.Runner)
+                                        {
+                                            <span class="sprite-icon">🟡</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="sprite-icon">👻</span>
+                                        }
+                                    </div>
+                                }
+                                else if (cellType == CellType.Food)
+                                {
+                                    <div class="food-dot"></div>
+                                }
+                            }
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="game-loading">
+                    <div class="spinner"></div>
+                    <h2>Initializing Game State...</h2>
+                    <p>Room: @roomCode | User: @username</p>
+                    @if (hubConnection?.State == HubConnectionState.Connected)
+                    {
+                        <p class="status-success">Connected to Hub</p>
+                    }
+                    else
+                    {
+                        <p class="status-warning">Connection State: @hubConnection?.State</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    .game-container {
+        display: flex;
+        min-height: 100vh;
+        background: #1a1a2e;
+        color: white;
+    }
+
+    .game-sidebar {
+        width: 300px;
+        background: #16213e;
+        padding: 20px;
+        overflow-y: auto;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .game-header h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.5em;
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .room-info {
+        color: #888;
+        font-size: 0.9em;
+    }
+
+    .game-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .stat-card {
+        background: #0f3460;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-label {
+        font-size: 0.8em;
+        color: #888;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.5em;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .stat-value.role-runner {
+        color: #ffd700;
+    }
+
+    .stat-value.role-chaser {
+        color: #ff4444;
+    }
+
+    .players-panel {
+        margin: 20px 0;
+    }
+
+    .players-panel h3 {
+        margin: 0 0 15px 0;
+        font-size: 1.1em;
+        color: #ccc;
+    }
+
+    .player-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #0f3460;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: all 0.3s;
+    }
+
+    .player-item.dead {
+        opacity: 0.5;
+    }
+
+    .player-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        box-shadow: 0 0 10px currentColor;
+    }
+
+    .player-details {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .player-name {
+        font-size: 0.9em;
+    }
+
+    .dead-badge {
+        font-size: 0.8em;
+    }
+
+    .player-score {
+        font-weight: 700;
+        color: #ffd700;
+    }
+
+    .game-over-panel {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin: 20px 0;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .game-over-panel h2 {
+        margin: 0 0 10px 0;
+    }
+
+    .winner {
+        font-size: 1.3em;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .controls-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #0f3460;
+        border-radius: 10px;
+    }
+
+    .controls-info h4 {
+        margin: 0 0 10px 0;
+        font-size: 0.9em;
+        color: #ccc;
+    }
+
+    .key-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+    }
+
+    kbd {
+        background: #1a1a2e;
+        color: white;
+        padding: 8px;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 0.8em;
+        border: 1px solid #333;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .game-board-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: auto;
+    }
+
+    .game-board {
+        display: grid;
+        gap: 1px;
+        background: #0a0a0a;
+        padding: 2px;
+        border-radius: 4px;
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .cell {
+        width: 20px;
+        height: 20px;
+        background: #000;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .cell.wall {
+        background: #1e3a8a;
+        box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    .cell.empty {
+        background: #000;
+    }
+
+    .cell.food {
+        background: #000;
+    }
+
+    .cell.fog {
+        opacity: 0.15;
+        filter: brightness(0.3);
+    }
+
+    .food-dot {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        animation: glow 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes glow {
+        0%, 100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+        50% { box-shadow: 0 0 15px rgba(255, 255, 255, 1); }
+    }
+
+    .player-sprite {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 15px currentColor;
+        animation: playerPulse 1s ease-in-out infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sprite-icon {
+        font-size: 12px;
+    }
+
+    @@keyframes playerPulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? room { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? username { get; set; }
+
+    private HubConnection? hubConnection;
+    private string roomCode = "";
+    private GameState? gameState;
+    private PlayerState? currentPlayer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(room))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        roomCode = room;
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/gamehub"), options => {
+                options.HttpMessageHandlerFactory = handler => {
+                    if (handler is HttpClientHandler clientHandler)
+                    {
+                        clientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+                    }
+                    return handler;
+                };
+            })
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<GameState>("GameStateUpdated", (state) =>
+        {
+            gameState = state;
+            if (hubConnection?.ConnectionId != null)
+            {
+                currentPlayer = state.Players.GetValueOrDefault(hubConnection.ConnectionId);
+            }
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string>("GameEnded", (winner) =>
+        {
+            InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await hubConnection.StartAsync();
+            if (hubConnection.State == HubConnectionState.Connected)
+            {
+                var state = await hubConnection.InvokeAsync<GameState>("ReconnectToGame", roomCode, username ?? "Unknown");
+                if (state != null)
+                {
+                    gameState = state;
+                    if (hubConnection?.ConnectionId != null)
+                    {
+                        currentPlayer = state.Players.GetValueOrDefault(hubConnection.ConnectionId);
+                    }
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error connecting/reconnecting: {ex.Message}");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("setupKeyboardControls", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleKeyPress(string direction)
+    {
+        if (hubConnection is not null && gameState?.Status == GameStatus.InProgress)
+        {
+            await hubConnection.SendAsync("MovePlayer", direction);
+        }
+    }
+
+    private bool IsVisible(Position pos, Position playerPos, int radius)
+    {
+        var distance = Math.Sqrt(Math.Pow(pos.X - playerPos.X, 2) + Math.Pow(pos.Y - playerPos.Y, 2));
+        return distance <= radius;
+    }
+
+    private PlayerState? GetPlayerAtPosition(Position pos)
+    {
+        return gameState?.Players.Values.FirstOrDefault(p => 
+            p.Position.X == pos.X && p.Position.Y == pos.Y && p.IsAlive);
+    }
+
+    private string GetCellClass(CellType cellType, bool isVisible, PlayerState? player)
+    {
+        var classes = new List<string>();
+
+        if (cellType == CellType.Wall)
+            classes.Add("wall");
+        else if (cellType == CellType.Food)
+            classes.Add("food");
+        else
+            classes.Add("empty");
+
+        if (!isVisible)
+            classes.Add("fog");
+
+        return string.Join(" ", classes);
+    }
+
+    private void ReturnToLobby()
+    {
+        Navigation.NavigateTo("/home");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
