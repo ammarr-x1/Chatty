@@ -540,7 +540,7 @@
 
     private void ReturnToLobby()
     {
-        Navigation.NavigateTo("/home");
+        Navigation.NavigateTo($"/lobby?room={roomCode}&username={username}");
     }
 
     public async ValueTask DisposeAsync()

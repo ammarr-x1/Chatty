@@ -124,6 +124,12 @@ public class GameManager
             if (!room.GameState.CanStartGame())
                 return false;
 
+            // If a game was previously played, reset it before starting the new one
+            if (room.GameState.Status == GameStatus.RunnersWin || room.GameState.Status == GameStatus.ChasersWin)
+            {
+                room.GameState.Reset();
+            }
+
             room.GameState.Status = GameStatus.InProgress;
             room.GameState.GameStartTime = DateTime.UtcNow;
             room.GameState.AssignRoles();
@@ -248,6 +254,7 @@ public class GameManager
         }
 
         // Move is valid - update position
+        player.PreviousPosition = player.Position;
         player.Position = newPos;
         player.LastMoveTime = DateTime.UtcNow;
 
@@ -271,7 +278,14 @@ public class GameManager
         {
             foreach (var runner in runners)
             {
-                if (chaser.Position.Equals(runner.Position))
+                // Direct collision (on same tile)
+                bool directCollision = chaser.Position.Equals(runner.Position);
+                
+                // Position swap collision (passed each other head-on)
+                bool swapCollision = chaser.Position.Equals(runner.PreviousPosition) && 
+                                   runner.Position.Equals(chaser.PreviousPosition);
+
+                if (directCollision || swapCollision)
                 {
                     runner.IsAlive = false;
                     runner.IsStopped = true;
