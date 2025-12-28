@@ -8,7 +8,7 @@ namespace PacmanMultiplayer.Services;
 public class GameLoopService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(200); // 5 ticks per second
+    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(160); // 5 ticks per second
 
     public GameLoopService(IServiceProvider serviceProvider)
     {

@@ -4,15 +4,15 @@ window.setupKeyboardControls = (dotnetHelper) => {
     // Track which keys are currently pressed to prevent repeating
     const pressedKeys = new Set();
 
-    // Remove existing listeners if any
-    if (window.keydownHandler) {
-        document.removeEventListener('keydown', window.keydownHandler);
-    }
-    if (window.keyupHandler) {
-        document.removeEventListener('keyup', window.keyupHandler);
-    }
+    // Helper to check if user is typing in an input
+    const isTyping = () => {
+        const el = document.activeElement;
+        return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+    };
 
     window.keydownHandler = async (event) => {
+        if (isTyping()) return;
+
         const key = event.key.toLowerCase();
 
         // Ignore if key is already pressed (prevents repeat)
@@ -23,29 +23,22 @@ window.setupKeyboardControls = (dotnetHelper) => {
         let direction = null;
 
         switch (key) {
-            case 'w':
-            case 'arrowup':
+            case 'w': case 'arrowup':
                 direction = 'up';
-                event.preventDefault();
                 break;
-            case 's':
-            case 'arrowdown':
+            case 's': case 'arrowdown':
                 direction = 'down';
-                event.preventDefault();
                 break;
-            case 'a':
-            case 'arrowleft':
+            case 'a': case 'arrowleft':
                 direction = 'left';
-                event.preventDefault();
                 break;
-            case 'd':
-            case 'arrowright':
+            case 'd': case 'arrowright':
                 direction = 'right';
-                event.preventDefault();
                 break;
         }
 
         if (direction) {
+            event.preventDefault(); // Only prevent default if we're actually using the key for the game
             pressedKeys.add(key);
             try {
                 await dotnetHelper.invokeMethodAsync('HandleKeyPress', direction);
@@ -60,6 +53,22 @@ window.setupKeyboardControls = (dotnetHelper) => {
         pressedKeys.delete(key);
     };
 
+    // Remove existing if any (safety)
+    document.removeEventListener('keydown', window.keydownHandler);
+    document.removeEventListener('keyup', window.keyupHandler);
+
     document.addEventListener('keydown', window.keydownHandler);
     document.addEventListener('keyup', window.keyupHandler);
+};
+
+window.cleanupKeyboardControls = () => {
+    if (window.keydownHandler) {
+        document.removeEventListener('keydown', window.keydownHandler);
+        window.keydownHandler = null;
+    }
+    if (window.keyupHandler) {
+        document.removeEventListener('keyup', window.keyupHandler);
+        window.keyupHandler = null;
+    }
+    console.log('Keyboard controls cleaned up');
 };

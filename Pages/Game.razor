@@ -545,9 +545,21 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection is not null)
+        try
         {
-            await hubConnection.DisposeAsync();
+            if (hubConnection is not null)
+            {
+                await hubConnection.DisposeAsync();
+            }
+            await JS.InvokeVoidAsync("cleanupKeyboardControls");
+        }
+        catch (InvalidOperationException)
+        {
+            // JS runtime not available during prerendering or disconnection
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during disposal: {ex.Message}");
         }
     }
 }

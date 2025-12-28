@@ -218,7 +218,8 @@ public class GameState
 
     public void AssignRoles()
     {
-        var playerList = Players.Values.ToList();
+        var random = new Random();
+        var playerList = Players.Values.OrderBy(x => random.Next()).ToList();
         int chaserCount = Math.Max(1, playerList.Count / 3);
 
         var colors = new[] { "red", "magenta", "cyan", "orange", "pink" };
